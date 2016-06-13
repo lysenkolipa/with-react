@@ -12,8 +12,8 @@
     "prod": "brunch build --production"
   },
   "dependencies": {
-    "react": "~0.14.7",
-    "react-dom": "~0.14.7"
+    "react": "*",
+    "react-dom": "*"
   },
   "devDependencies": {
     "auto-reload-brunch": "^2.0.0",
