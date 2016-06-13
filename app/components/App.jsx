@@ -1,7 +1,11 @@
 import React from "react"
 import Card from "./Card"
 
-const api = "http://pokeapi.co"
+const api = "http://pokeapi.co/api/v1"
+const limit = 12
+
+const dedupe = array => [ ...new Set(array) ]
+const flatten = array => [].concat(...array)
 
 export default class App extends React.Component
 {
@@ -9,12 +13,27 @@ export default class App extends React.Component
     {
         super(...arguments)
 
+        this.filterPokemons = this.filterPokemons.bind(this)
         this.loadPokemons = this.loadPokemons.bind(this)
+
         this.state =
         {
+            loading: false,
+            next: `/pokemon/?limit=${limit}`,
             pokemons: [],
-            next: "/api/v1/pokemon/?limit=12"
+            filter: new Set
         }
+    }
+
+    filterPokemons(event)
+    {
+        let {checked, name} = event.target
+        let {filter} = this.state
+
+        if (checked) filter.add(name)
+        else filter.delete(name)
+
+        this.setState({ filter })
     }
 
     loadPokemons()
@@ -35,12 +54,30 @@ export default class App extends React.Component
 
     render()
     {
-        let {pokemons, loading} = this.state
-        let cards = pokemons.map(data =>
+        let {loading, pokemons, filter} = this.state
+        let types = dedupe(flatten(pokemons
+                .map(data => data.types)
+            )
+            .map(type => type.name)
+        )
+
+        let filters = types.map(type =>
+            <label key={type}>
+                <input onChange={this.filterPokemons} name={type} type="checkbox" />
+                {type}
+            </label>
+        )
+
+        let cards = pokemons.filter(data => filter.size
+            ? data.types.some(type => filter.has(type.name))
+            : true
+        )
+        .map(data =>
             <Card {...data} key={data.pkdx_id} />
         )
 
         return <div>
+            <ul>{filters}</ul>
             <ul>{cards}</ul>
             <button onClick={this.loadPokemons}>
                 <progress hidden={!loading} />
