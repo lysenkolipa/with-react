@@ -1,7 +1,7 @@
 import React from "react"
 import Card from "./Card"
 
-const api = "http://pokeapi.co/api/v1"
+const api = "http://pokeapi.co"
 const limit = 12
 
 const dedupe = array => [ ...new Set(array) ]
@@ -20,7 +20,7 @@ export default class App extends React.Component
         this.state =
         {
             loading: false,
-            next: `/pokemon/?limit=${limit}`,
+            next: `/api/v1/pokemon/?limit=${limit}`,
             pokemons: [],
             filter: new Set,
             method: "some"
