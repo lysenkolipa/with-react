@@ -25,6 +25,15 @@ export default class App extends React.Component
         }
     }
 
+    get filter()
+    {
+        let {filter} = this.state
+
+        return ({types}) => filter.size
+            ? types.some(type => filter.has(type.name))
+            : true
+    }
+
     filterPokemons(event)
     {
         let {checked, name} = event.target
@@ -54,7 +63,7 @@ export default class App extends React.Component
 
     render()
     {
-        let {loading, pokemons, filter} = this.state
+        let {loading, pokemons} = this.state
         let types = dedupe(flatten(pokemons
                 .map(data => data.types)
             )
@@ -68,11 +77,7 @@ export default class App extends React.Component
             </label>
         )
 
-        let cards = pokemons.filter(data => filter.size
-            ? data.types.some(type => filter.has(type.name))
-            : true
-        )
-        .map(data =>
+        let cards = pokemons.filter(this.filter).map(data =>
             <Card {...data} key={data.pkdx_id} />
         )
 
