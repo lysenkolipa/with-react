@@ -7,6 +7,22 @@ const limit = 12
 const dedupe = array => [ ...new Set(array) ]
 const flatten = array => [].concat(...array)
 
+const filters =
+{
+    only()
+    {
+        return () => true
+    },
+    some()
+    {
+        return () => true
+    },
+    every()
+    {
+        return () => true
+    }
+}
+
 export default class App extends React.Component
 {
     constructor()
@@ -77,6 +93,25 @@ export default class App extends React.Component
         let types = dedupe(flatten(pokemons
                 .map(data => data.types)
             )
+    get methods()
+    {
+        let {method} = this.state
+
+        return Object.keys(filters).map(filter =>
+            <li key={filter}>
+                <label>
+                    <input onChange={this.filterMethod}
+                        checked={filter == method}
+                        type="radio"
+                        name="method"
+                        data-method={filter}
+                    />
+                {filter}
+                </label>
+            </li>
+        )
+    }
+
             .map(type => type.name)
         )
 
@@ -93,20 +128,7 @@ export default class App extends React.Component
 
         return <div>
             <div hidden={!cards.length}>
-                <ul>
-                    <li>
-                        <label>
-                            <input onChange={this.filterMethod} checked={method == "every"} type="radio" name="method" data-method="every" />Every
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input onChange={this.filterMethod} checked={method == "some"} type="radio" name="method" data-method="some" />Some
-                        </label>
-                    </li>
-                </ul>
-
-                <ul>{filters}</ul>
+                <ul>{this.methods}</ul>
             </div>
             <ul>{cards}</ul>
             <button onClick={this.loadPokemons}>
