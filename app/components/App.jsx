@@ -13,7 +13,8 @@ export default class App extends React.Component
     {
         super(...arguments)
 
-        this.filterPokemons = this.filterPokemons.bind(this)
+        this.filterMethod = this.filterMethod.bind(this)
+        this.filterType = this.filterType.bind(this)
         this.loadPokemons = this.loadPokemons.bind(this)
 
         this.state =
@@ -21,20 +22,22 @@ export default class App extends React.Component
             loading: false,
             next: `/pokemon/?limit=${limit}`,
             pokemons: [],
-            filter: new Set
+            filter: new Set,
+            method: "some"
         }
     }
 
     get filter()
     {
-        let {filter} = this.state
+        let {filter, method} = this.state
+        if (!filter.size) return () => true
 
-        return ({types}) => filter.size
-            ? types.some(type => filter.has(type.name))
-            : true
+        return ({types}) => types[method](type =>
+            filter.has(type.name)
+        )
     }
 
-    filterPokemons(event)
+    filterType(event)
     {
         let {checked, name} = event.target
         let {filter} = this.state
@@ -43,6 +46,13 @@ export default class App extends React.Component
         else filter.delete(name)
 
         this.setState({ filter })
+    }
+
+    filterMethod(event)
+    {
+        let {method} = event.target.dataset
+
+        this.setState({ method })
     }
 
     loadPokemons()
@@ -63,7 +73,7 @@ export default class App extends React.Component
 
     render()
     {
-        let {loading, pokemons} = this.state
+        let {loading, pokemons, method} = this.state
         let types = dedupe(flatten(pokemons
                 .map(data => data.types)
             )
@@ -72,7 +82,7 @@ export default class App extends React.Component
 
         let filters = types.map(type =>
             <label key={type}>
-                <input onChange={this.filterPokemons} name={type} type="checkbox" />
+                <input onChange={this.filterType} name={type} type="checkbox" />
                 {type}
             </label>
         )
@@ -82,7 +92,22 @@ export default class App extends React.Component
         )
 
         return <div>
-            <ul>{filters}</ul>
+            <div hidden={!cards.length}>
+                <ul>
+                    <li>
+                        <label>
+                            <input onChange={this.filterMethod} checked={method == "every"} type="radio" name="method" data-method="every" />Every
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input onChange={this.filterMethod} checked={method == "some"} type="radio" name="method" data-method="some" />Some
+                        </label>
+                    </li>
+                </ul>
+
+                <ul>{filters}</ul>
+            </div>
             <ul>{cards}</ul>
             <button onClick={this.loadPokemons}>
                 <progress hidden={!loading} />
