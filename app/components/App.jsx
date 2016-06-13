@@ -43,16 +43,6 @@ export default class App extends React.Component
         }
     }
 
-    get filter()
-    {
-        let {filter, method} = this.state
-        if (!filter.size) return () => true
-
-        return ({types}) => types[method](type =>
-            filter.has(type.name)
-        )
-    }
-
     filterType(event)
     {
         let {checked, name} = event.target
@@ -87,12 +77,16 @@ export default class App extends React.Component
             })
     }
 
-    render()
+    get filterFn()
     {
-        let {loading, pokemons, method} = this.state
-        let types = dedupe(flatten(pokemons
-                .map(data => data.types)
-            )
+        let {filter, method} = this.state
+        if (!filter.size) return () => true
+
+        return ({types}) => types[method](type =>
+            filter.has(type.name)
+        )
+    }
+
     get methods()
     {
         let {method} = this.state
@@ -112,23 +106,37 @@ export default class App extends React.Component
         )
     }
 
+    get types()
+    {
+        let {pokemons} = this.state
+        let types = dedupe(flatten(pokemons.map(data =>
+                data.types
+            ))
             .map(type => type.name)
         )
 
-        let filters = types.map(type =>
-            <label key={type}>
-                <input onChange={this.filterType} name={type} type="checkbox" />
-                {type}
-            </label>
+        return types.map(type =>
+            <li key={type}>
+                <label>
+                    <input onChange={this.filterType}
+                        name={type} type="checkbox" />
+                    {type}
+                </label>
+            </li>
         )
+    }
 
-        let cards = pokemons.filter(this.filter).map(data =>
-            <Card {...data} key={data.pkdx_id} />
+    render()
+    {
+        let {loading, pokemons} = this.state
+        let cards = pokemons.filter(this.filterFn).map(data =>
+            <li key={data.pkdx_id}><Card {...data} /></li>
         )
 
         return <div>
             <div hidden={!cards.length}>
                 <ul>{this.methods}</ul>
+                <ul>{this.types}</ul>
             </div>
             <ul>{cards}</ul>
             <button onClick={this.loadPokemons}>
